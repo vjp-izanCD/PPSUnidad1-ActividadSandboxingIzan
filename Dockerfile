@@ -23,6 +23,9 @@ COPY tests/ ./tests/
 # Cambiar permisos al usuario no privilegiado
 RUN chown -R sandboxuser:sandboxuser /app
 
+# Configurar PYTHONPATH para que Python encuentre el módulo notas
+ENV PYTHONPATH=/app/src:$PYTHONPATH
+
 # Cambiar al usuario no privilegiado
 USER sandboxuser
 
