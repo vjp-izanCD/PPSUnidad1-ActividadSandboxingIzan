@@ -1,43 +1,141 @@
-# BorradoraplicacionNotas — instrucciones rápidas
+# Actividad de Sandboxing - Puesta en Producción Segura
 
-Pequeño subproyecto educativo con un paquete `notas` bajo `src/` y tests en `tests/`.
+## 📋 Descripción
 
-Pasos recomendados para desarrollo local:
+Repositorio para la actividad de Sandboxing de la Unidad 1 del módulo **Puesta en Producción Segura**. 
 
-1. Crear y activar un entorno virtual (recomendado):
+Contiene:
+- 📝 Reflexión sobre seguridad en lenguajes de programación
+- 🐳 Implementación de sandbox con Docker para la aplicación `lavadero`
+- 📚 Documentación completa del proceso con instrucciones paso a paso
+- 🖼️ Placeholders para capturas de pantalla de las pruebas
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
+## 📁 Estructura del Proyecto
+
+```
+PPSUnidad1-ActividadSandboxingIzan/
+├── docs/
+│   ├── reflexion-lenguajes.md        # Reflexión sobre seguridad en lenguajes
+│   ├── documentacion-sandboxing.md   # Guía completa de uso del sandbox
+│   └── ...                           # Otras docs generadas
+├── src/                              # Código fuente de lavadero
+├── scripts/                          # Scripts auxiliares
+├── tests/                            # Tests de la aplicación
+├── imagenes/                         # Capturas de pantalla (añadir manualmente)
+├── Dockerfile                        # Configuración del sandbox
+├── requirements.txt                  # Dependencias Python
+├── Makefile                          # Comandos útiles
+└── README.md                         # Este archivo
 ```
 
-2. Instalar dependencias de desarrollo y el paquete en editable:
+## 🚀 Uso Rápido
+
+### Construir el Sandbox
 
 ```bash
-pip install -r requeriments.txt
-pip install -e .
+# En el directorio raíz del proyecto
+docker build -t lavadero-sandbox .
 ```
 
-3. Ejecutar tests:
-
-Con pytest (si está instalado):
+### Ejecutar la Aplicación
 
 ```bash
-pytest -q
+# Ejecutar de forma interactiva
+docker run --rm -it lavadero-sandbox
 ```
 
-O usando el helper incluido (usa pytest si está disponible y, si no, ejecuta unittest):
+### Ejecutar con Límites de Recursos
 
 ```bash
-./scripts/run-tests.sh
+# Con límites de memoria y CPU
+docker run --rm -it \
+  --memory="512m" \
+  --cpus="0.5" \
+  lavadero-sandbox
 ```
 
-4. Generar/servir la documentación (mkdocs):
+## 📚 Documentación
 
+- **[📝 Reflexión sobre Lenguajes](docs/reflexion-lenguajes.md)**: Análisis completo de seguridad en diferentes lenguajes de programación (Python, TypeScript, SQL, Rust, C/C++)
+- **[🐳 Documentación Sandboxing](docs/documentacion-sandboxing.md)**: Guía detallada del proceso de sandboxing con instrucciones, comandos y placeholders para capturas
+
+## 🔒 Características de Seguridad
+
+El sandbox implementado incluye:
+
+- ✅ **Contenedor Docker aislado** - Sin acceso al sistema host
+- ✅ **Usuario sin privilegios** - Ejecución como `sandboxuser`
+- ✅ **Límites de recursos configurables** - Control de CPU y memoria
+- ✅ **Sin acceso a red del host** por defecto
+- ✅ **Imágenes oficiales** - Python 3.11 slim de Docker Hub
+- ✅ **Entorno reproducible** - Funciona igual en cualquier sistema
+
+## ⚙️ Comandos Útiles
+
+### Ver imágenes Docker
 ```bash
-mkdocs serve
+docker images
 ```
 
-Notas:
-- Si no quieres activar el venv, puedes usar `PYTHONPATH=src python -m unittest ...` para ejecutar tests sin instalar el paquete.
-- El proyecto está configurado para instalación editable (`pip install -e .`) mediante `pyproject.toml` + `setup.cfg`.
+### Acceder al shell del contenedor
+```bash
+docker run --rm -it lavadero-sandbox /bin/bash
+```
+
+### Verificar usuario no privilegiado
+```bash
+docker run --rm lavadero-sandbox whoami
+# Output esperado: sandboxuser
+```
+
+### Eliminar imagen
+```bash
+docker rmi lavadero-sandbox
+```
+
+### Limpiar recursos Docker
+```bash
+docker system prune -a
+```
+
+## 📋 Tareas Pendientes
+
+### Para completar la actividad:
+
+1. ✅ Crear repositorio
+2. ✅ Escribir reflexión sobre lenguajes
+3. ✅ Crear Dockerfile
+4. ✅ Documentar proceso de sandboxing
+5. ⚠️ **Ejecutar Docker localmente y tomar capturas de pantalla** (TU PARTE)
+6. ⚠️ **Añadir capturas a `/imagenes` y actualizar los Markdown** (TU PARTE)
+7. ⚠️ **Comprimir repositorio para entrega** (TU PARTE)
+
+### Capturas necesarias (ver `docs/documentacion-sandboxing.md`):
+
+- 📷 CAPTURA 1: Construcción del contenedor
+- 📷 CAPTURA 2: Ejecución de lavadero
+- 📷 CAPTURA 3: Verificación usuario no root
+- 📷 CAPTURA 4: Ejecución con límites
+- 📷 CAPTURA 5: Inspección de contenedores
+- 📷 CAPTURA 6: Prueba de aislamiento de archivos
+- 📷 CAPTURA 7: Intento de escalar privilegios
+- 📷 CAPTURA 8: Aislamiento de red
+
+## 👤 Autor
+
+**Izan**  
+Ciclo Formativo de Grado Superior en Ciberseguridad  
+IES Valle del Jerte - Plasencia
+
+## 📅 Fecha
+
+Diciembre 2025
+
+## 🏫 Asignatura
+
+**Puesta en Producción Segura - Unidad 1**  
+**Profesor**: José Manuel Medina
+
+---
+
+🔥 **Nota**: Los archivos de documentación están completamente listos. Solo necesitas ejecutar Docker localmente, tomar las capturas de pantalla indicadas y añadirlas donde se indica `[CAPTURA X]` en el archivo `docs/documentacion-sandboxing.md`
