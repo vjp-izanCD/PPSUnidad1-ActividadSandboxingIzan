@@ -248,5 +248,5 @@ Ciclo Formativo de Grado Superior en Ciberseguridad
 IES Valle del Jerte - Plasencia  
 
 **Asignatura**: Puesta en Producción Segura - Unidad 1  
-**Profesor**: José Manuel Medina  
+**Profesor**: José Miguel Medina  
 **Fecha**: Diciembre 2025
