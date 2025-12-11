@@ -134,7 +134,7 @@ Diciembre 2025
 ## 🏫 Asignatura
 
 **Puesta en Producción Segura - Unidad 1**  
-**Profesor**: José Manuel Medina
+**Profesor**: José Miguel Medina
 
 ---
 
