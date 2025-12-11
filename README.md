@@ -6,7 +6,7 @@ Repositorio para la actividad de Sandboxing de la Unidad 1 del módulo **Puesta 
 
 Contiene:
 - 📝 Reflexión sobre seguridad en lenguajes de programación
-- 🐳 Implementación de sandbox con Docker para la aplicación `lavadero`
+- 🐳 Implementación de sandbox con Docker para la aplicación `notas`
 - 📚 Documentación completa del proceso con instrucciones paso a paso
 - 🖼️ Placeholders para capturas de pantalla de las pruebas
 
@@ -18,7 +18,7 @@ PPSUnidad1-ActividadSandboxingIzan/
 │   ├── reflexion-lenguajes.md        # Reflexión sobre seguridad en lenguajes
 │   ├── documentacion-sandboxing.md   # Guía completa de uso del sandbox
 │   └── ...                           # Otras docs generadas
-├── src/                              # Código fuente de lavadero
+├── src/                              # Código fuente de notas
 ├── scripts/                          # Scripts auxiliares
 ├── tests/                            # Tests de la aplicación
 ├── imagenes/                         # Capturas de pantalla (añadir manualmente)
@@ -34,14 +34,14 @@ PPSUnidad1-ActividadSandboxingIzan/
 
 ```bash
 # En el directorio raíz del proyecto
-docker build -t lavadero-sandbox .
+docker build -t notas-sandbox .
 ```
 
 ### Ejecutar la Aplicación
 
 ```bash
 # Ejecutar de forma interactiva
-docker run --rm -it lavadero-sandbox
+docker run --rm -it notas-sandbox
 ```
 
 ### Ejecutar con Límites de Recursos
@@ -51,7 +51,7 @@ docker run --rm -it lavadero-sandbox
 docker run --rm -it \
   --memory="512m" \
   --cpus="0.5" \
-  lavadero-sandbox
+  notas-sandbox
 ```
 
 ## 📚 Documentación
@@ -79,18 +79,18 @@ docker images
 
 ### Acceder al shell del contenedor
 ```bash
-docker run --rm -it lavadero-sandbox /bin/bash
+docker run --rm -it notas-sandbox /bin/bash
 ```
 
 ### Verificar usuario no privilegiado
 ```bash
-docker run --rm lavadero-sandbox whoami
+docker run --rm notas-sandbox whoami
 # Output esperado: sandboxuser
 ```
 
 ### Eliminar imagen
 ```bash
-docker rmi lavadero-sandbox
+docker rmi notas-sandbox
 ```
 
 ### Limpiar recursos Docker
@@ -113,7 +113,7 @@ docker system prune -a
 ### Capturas necesarias (ver `docs/documentacion-sandboxing.md`):
 
 - 📷 CAPTURA 1: Construcción del contenedor
-- 📷 CAPTURA 2: Ejecución de lavadero
+- 📷 CAPTURA 2: Ejecución de notas
 - 📷 CAPTURA 3: Verificación usuario no root
 - 📷 CAPTURA 4: Ejecución con límites
 - 📷 CAPTURA 5: Inspección de contenedores
