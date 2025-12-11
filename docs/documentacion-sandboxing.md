@@ -1,292 +1,252 @@
-# Documentación: Sandboxing de la Aplicación Lavadero
+# Documentación: Sandboxing con Firejail
 
 ## Introducción
 
-Este documento describe el proceso completo de creación y uso de un entorno de sandboxing mediante Docker para ejecutar de forma aislada y segura la aplicación `lavadero` desarrollada en Python.
+Este documento describe el proceso completo de ejecución de sandboxing mediante **Firejail** para ejecutar de forma aislada y segura la aplicación `lavadero` desarrollada en Python.
 
 ## ¿Qué es Sandboxing?
 
 El sandboxing es una técnica de seguridad que permite ejecutar aplicaciones en un entorno aislado, sin acceso directo a los recursos del sistema host. Esto es fundamental para:
+
 - Analizar software potencialmente peligroso
 - Probar aplicaciones sin riesgo para el sistema
 - Crear entornos reproducibles
 - Evitar la propagación de malware
+- Limitar el acceso a recursos del sistema (archivos, red, etc.)
 
-## Tecnología Utilizada: Docker
+## Tecnología Utilizada: Firejail
 
-### ¿Por qué Docker?
+### ¿Por qué Firejail?
 
-- **Aislamiento completo**: Contenedores completamente separados del host
-- **Portabilidad**: Funciona igual en Windows, Linux y macOS
-- **Ligereza**: Más eficiente que máquinas virtuales tradicionales
-- **Reproducibilidad**: Mismo entorno siempre, sin "funciona en mi máquina"
-- **Ecosistema maduro**: Gran comunidad y documentación
-
-## Estructura del Proyecto
-
-```
-PPSUnidad1-ActividadSandboxingIzan/
-├── Dockerfile              # Definición del contenedor
-├── requirements.txt        # Dependencias Python
-├── src/                    # Código fuente de lavadero
-├── scripts/                # Scripts auxiliares
-├── tests/                  # Tests
-├── docs/                   # Documentación
-└── imagenes/               # Capturas de pantalla
-```
-
-## Configuración del Sandbox
-
-### Análisis del Dockerfile
-
-El Dockerfile implementa las siguientes medidas de seguridad:
-
-1. **Imagen base ligera**: `python:3.11-slim` - Reduce superficie de ataque
-2. **Usuario no privilegiado**: Creación de `sandboxuser` sin permisos de root
-3. **Permisos restringidos**: Solo acceso a `/app`
-4. **Dependencias controladas**: Instalación desde `requirements.txt`
-5. **Ejecución sin root**: El contenedor nunca se ejecuta como superusuario
-
-### Código del Dockerfile
-
-```dockerfile
-FROM python:3.11-slim
-LABEL maintainer="Izan"
-LABEL description="Sandbox para ejecutar lavadero de forma aislada"
-
-RUN useradd -m -s /bin/bash sandboxuser
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY src/ ./src/
-COPY scripts/ ./scripts/
-COPY tests/ ./tests/
-
-RUN chown -R sandboxuser:sandboxuser /app
-USER sandboxuser
-
-CMD ["python", "src/main.py"]
-```
-
-## Instrucciones de Uso
-
-### 1. Construcción del Contenedor
-
-```bash
-# En el directorio raíz del proyecto
-docker build -t lavadero-sandbox .
-```
-
-**➡️ [CAPTURA 1]: Proceso de construcción del contenedor Docker**
-
-*Descripción de lo que debe mostrar la captura*:
-- Comando `docker build` ejecutado
-- Pasos de construcción (FROM, RUN, COPY, etc.)
-- Mensaje final "Successfully built" con el ID de la imagen
+- **Aislamiento de procesos**: Usa namespaces de Linux para aislar procesos
+- **Control de recursos**: Permite limitar CPU, memoria y red
+- **Fácil de usar**: Sintaxis simple y comandos intuitivos
+- **Seguridad**: Impide escalada de privilegios y acceso no autorizado
+- **Perfiles predefinidos**: Incluye perfiles para aplicaciones comunes
 
 ---
 
-### 2. Ejecución de la Aplicación
+## Paso 1: Instalación de Firejail
+
+Primero necesitamos instalar Firejail en Kali Linux:
+
 ```bash
-# Ejecutar el contenedor de forma interactiva
-docker run --rm -it lavadero-sandbox
+sudo apt update
+sudo apt install firejail firet ools -y
 ```
 
-**➡️ [CAPTURA 2]: Ejecución del contenedor y salida de la aplicación lavadero**
+### Verificar la instalación
 
-*Descripción*:
-- Comando `docker run` ejecutado
-- Salida de la aplicación lavadero funcionando
-- Menús o outputs del programa
+Para comprobar que Firejail está correctamente instalado:
+
+```bash
+firejail --version
+```
 
 ---
 
-### 3. Verificación del Usuario No Privilegiado
+## Paso 2: Ejecución Básica con Firejail
+
+### Comando 1: Verificar la versión de Python en el sandbox
+
+Ejecutamos Python dentro de Firejail para verificar que funciona correctamente:
 
 ```bash
-# Comprobar que el usuario no es root
-docker run --rm lavadero-sandbox whoami
-# Output esperado: sandboxuser
+firejail python3 --version
 ```
 
-**➡️ [CAPTURA 3]: Verificación de usuario no root**
+**📸 Captura 1**: Verificación de Python dentro de Firejail
 
-*Descripción*:
-- Ejecución del comando `whoami` dentro del contenedor
-- Output mostrando "sandboxuser" (NO "root")
+![Captura 1 - Firejail Python Version](../imagenes/captura1.png)
+
+En esta captura se puede ver:
+- El comando `firejail python3 --version` ejecutándose
+- Firejail cargando sus perfiles de seguridad (`default.profile`, `disable-common.inc`, etc.)
+- La advertencia de que la funcionalidad de red está deshabilitada
+- La versión de Firejail (0.9.76)
+- La versión de Python (3.13.9) ejecutándose dentro del sandbox
 
 ---
 
-### 4. Ejecución con Límites de Recursos
+## Paso 3: Ejecución de la Aplicación Lavadero
+
+### Comando 2: Ejecutar la aplicación sin red ni acceso a archivos privados
+
+Ejecutamos la aplicación de notas dentro de un entorno completamente aislado:
 
 ```bash
-# Ejecutar con límites de memoria y CPU
-docker run --rm -it \
-  --memory="512m" \
-  --cpus="0.5" \
-  lavadero-sandbox
+cd ~/PPSUnidad1-ActividadSandboxingIzan
+firejail --net=none --private=. python3 src/notas/main.py
 ```
 
-**➡️ [CAPTURA 4]: Ejecución con límites de recursos**
+**Parámetros utilizados:**
+- `--net=none`: Deshabilita completamente el acceso a la red
+- `--private=.`: Crea un sistema de archivos privado temporal con acceso solo al directorio actual
 
-*Descripción*:
-- Comando con parámetros de límites
-- Aplicación funcionando con restricciones
+**📸 Captura 2**: Ejecución de la aplicación de notas en Firejail
+
+![Captura 2 - Aplicación Notas](../imagenes/captura2.png)
+
+En esta captura podemos observar:
+- La aplicación **Gestor de Notas** ejecutándose correctamente
+- El menú interactivo permitiendo agregar, mostrar y gestionar notas
+- La aplicación funciona normalmente dentro del entorno aislado
+- Se agregaron varias notas y se puede ver el promedio calculado
 
 ---
 
-### 5. Inspección del Contenedor
+## Paso 4: Ejecución Sin Sandbox (Comparación)
+
+### Comando 3: Ejecutar sin Firejail para comparar
+
+Para demostrar la diferencia, ejecutamos la misma aplicación sin Firejail:
 
 ```bash
-# Ver información del contenedor en ejecución
-docker ps
-docker stats
+cd ~/PPSUnidad1-ActividadSandboxingIzan
+python3 src/notas/main.py
 ```
 
-**➡️ [CAPTURA 5]: Inspección de contenedores activos**
+**📸 Captura 3**: Ejecución normal sin sandbox
 
-*Descripción*:
-- Salida de `docker ps` mostrando contenedor activo
-- Estadísticas de uso de recursos con `docker stats`
+![Captura 3 - Sin Sandbox](../imagenes/captura3.png)
+
+Aquí vemos:
+- La aplicación se ejecuta directamente sin capas de aislamiento
+- No aparecen los mensajes de Firejail
+- El sistema operativo tiene acceso completo a todos los recursos
+- **Riesgo**: Si la aplicación fuera maliciosa, podría acceder a todo el sistema
 
 ---
 
-## Pruebas de Aislamiento Realizadas
+## Paso 5: Listar Procesos en Sandbox
 
-### Prueba 1: Acceso al Sistema de Archivos del Host
+### Comando 4: Ver qué está ejecutándose en Firejail
 
-**Objetivo**: Verificar que el contenedor no puede acceder a archivos del sistema host.
+Firejail incluye herramientas para monitorizar procesos sandboxeados:
 
-**Comandos ejecutados**:
 ```bash
-docker run --rm lavadero-sandbox ls /
-docker run --rm lavadero-sandbox cat /etc/passwd
+firejail --list
 ```
 
-**➡️ [CAPTURA 6]: Intento de acceso al sistema de archivos**
+Este comando muestra:
+- El PID del proceso padre (Firejail)
+- El comando que se está ejecutando dentro del sandbox
 
-*Resultado esperado*: Solo se ven archivos del contenedor, no del host.
+**📸 Captura 4**: Lista de procesos en Firejail
+
+![Captura 4 - Firejail List](../imagenes/captura4.png)
+
+En esta captura se ve:
+- Los procesos activos dentro de Firejail
+- El PID 271105 ejecutando `python3 src/notas/main.py`
+- Confirmación de que la aplicación está aislada
 
 ---
 
-### Prueba 2: Intentar Escalar Privilegios
+## Paso 6: Ver el Árbol de Procesos
 
-**Objetivo**: Comprobar que no se pueden obtener permisos de root.
+### Comando 5: Visualizar la jerarquía de procesos
 
-**Comandos ejecutados**:
+Para ver cómo Firejail organiza los procesos:
+
 ```bash
-docker run --rm lavadero-sandbox sudo whoami
+firetools 6
 ```
 
-**➡️ [CAPTURA 7]: Intento de escalar privilegios**
+O usar `firejail --tree` para ver la jerarquía completa:
 
-*Resultado esperado*: Error - sudo no disponible o permiso denegado.
+```bash
+firejail --tree
+```
+
+**📸 Captura 5**: Árbol de procesos de Firejail
+
+![Captura 5 - Firetools Tree](../imagenes/captura5.png)
+
+Esta captura muestra:
+- La estructura jerárquica de procesos
+- El PID 271105 como proceso padre
+- Los subprocesos (271106, 271114) ejecutando Python
+- El estado "Hecho" indicando que el proceso terminó
 
 ---
 
-### Prueba 3: Aislamiento de Red
+## Paso 7: Uso de Firejail con Diferentes Aplicaciones
 
-**Objetivo**: Verificar que el contenedor tiene red limitada.
+### Comando 6: Ejecutar la aplicación principal (lavadero)
 
-**Comandos ejecutados**:
+Además de las notas, tenemos la aplicación principal del lavadero:
+
 ```bash
-docker run --rm --network=none lavadero-sandbox ping google.com
+cd ~/PPSUnidad1-ActividadSandboxingIzan
+firejail --net=none --private=. python3 src/notas/main.py
 ```
 
-**➡️ [CAPTURA 8]: Prueba de aislamiento de red**
+**📸 Captura 6**: Aplicación de notas ejecutándose de nuevo
 
-*Resultado esperado*: Sin acceso a red cuando se usa `--network=none`.
+![Captura 6 - Notas Application](../imagenes/captura6.png)
+
+Aquí se confirma:
+- El funcionamiento repetible de la aplicación
+- El aislamiento es consistente
+- La aplicación puede ejecutarse múltiples veces de forma segura
 
 ---
 
-## Análisis de Seguridad
+## Resumen de Comandos Utilizados
 
-### Ventajas del Sandbox Implementado
+| **Comando** | **Descripción** | **Captura** |
+|-------------|------------------|-------------|
+| `firejail python3 --version` | Verifica la instalación | Captura 1 |
+| `firejail --net=none --private=. python3 src/notas/main.py` | Ejecuta la app sin red ni acceso externo | Captura 2 |
+| `python3 src/notas/main.py` | Ejecución sin sandbox (comparación) | Captura 3 |
+| `firejail --list` | Lista procesos en sandbox | Captura 4 |
+| `firetools 6` o `firejail --tree` | Visualiza árbol de procesos | Captura 5 |
+| `firejail --net=none --private=. python3 src/notas/main.py` | Reutilización de la app | Captura 6 |
 
-✅ **Aislamiento completo** del sistema host  
-✅ **Usuario sin privilegios** - No puede hacer cambios críticos  
-✅ **Control de recursos** - Límites configurables de CPU/RAM  
-✅ **Reproducibilidad garantizada** - Mismo entorno siempre  
-✅ **Fácil de eliminar** - `docker rm` borra todo rastro  
-✅ **Portabilidad** - Funciona en cualquier sistema con Docker  
+---
 
-### Limitaciones y Consideraciones
+## Características de Seguridad Implementadas
 
-⚠️ **Requiere Docker instalado** - Dependencia externa  
-⚠️ **Overhead mínimo** - Consume recursos adicionales  
-⚠️ **Curva de aprendizaje** - Requiere conocimientos de Docker  
-⚠️ **No es 100% infalible** - Vulnerabilidades de escape de contenedor existen  
+✅ **Aislamiento de red**: `--net=none` impide toda conexión a Internet  
+✅ **Sistema de archivos privado**: `--private=.` crea un entorno temporal aislado  
+✅ **Sin privilegios root**: Firejail previene escalada de privilegios  
+✅ **Perfiles de seguridad**: Se cargan automáticamente (`default.profile`, `disable-common.inc`)  
+✅ **Monitorización de procesos**: `--list` y `--tree` permiten auditar lo que está ejecutándose  
+✅ **Reproduciblidad**: La aplicación funciona igual cada vez dentro del sandbox  
 
-### Medidas Adicionales de Seguridad Implementadas
+---
 
-1. **Imágenes oficiales**: Uso de `python:3.11-slim` de Docker Hub oficial
-2. **Sin caché pip**: `--no-cache-dir` reduce tamaño de imagen
-3. **Permisos mínimos**: `chown` solo lo necesario
-4. **Labels informativos**: Metadatos para identificación
-5. **Comando explícito**: `CMD` define claramente qué se ejecuta
+## Ventajas de Usar Firejail
 
-## Comparación: Sandbox vs Ejecución Normal
+1. **Seguridad**: Protege el sistema host de aplicaciones potencialmente peligrosas
+2. **Simplicidad**: Comandos fáciles de recordar y usar
+3. **Control**: Permite configurar exactamente qué recursos están disponibles
+4. **Sin Sobrecarga**: Más ligero que máquinas virtuales completas
+5. **Integración**: Funciona con aplicaciones existentes sin modificarlas
 
-| Aspecto | Ejecución Normal | Con Sandbox Docker |
-|---------|-------------------|--------------------|
-| Acceso a archivos del host | ✅ Total | ❌ Aislado |
-| Permisos de usuario | ⚠️ Tu usuario | ✅ Usuario sin privilegios |
-| Modificación del sistema | ⚠️ Posible | ❌ Bloqueado |
-| Instalación de software | ✅ Libre | ❌ Controlado |
-| Red | ✅ Acceso total | ✅ Configurable |
-| Persistencia | ✅ Permanente | ❌ Efímera (con `--rm`) |
-| Seguridad | ⚠️ Riesgo alto | ✅ Riesgo controlado |
-
-## Comandos Útiles Adicionales
-
-### Ver imágenes disponibles
-```bash
-docker images
-```
-
-### Eliminar imagen
-```bash
-docker rmi lavadero-sandbox
-```
-
-### Acceder a shell del contenedor
-```bash
-docker run --rm -it lavadero-sandbox /bin/bash
-```
-
-### Ver logs de un contenedor
-```bash
-docker logs <container_id>
-```
-
-### Limpiar recursos Docker
-```bash
-docker system prune -a
-```
+---
 
 ## Conclusiones
 
-El uso de Docker para sandboxing de la aplicación lavadero ha demostrado ser una solución efectiva que proporciona:
+En esta actividad hemos:
 
-1. **Seguridad mejorada**: Aislamiento total del sistema host
-2. **Control granular**: Límites de recursos configurables
-3. **Reproducibilidad**: Entorno idéntico en cualquier máquina
-4. **Facilidad de uso**: Comandos simples para construir y ejecutar
-5. **Reversibilidad**: Fácil de eliminar sin dejar rastro
+✓ Instalado y configurado Firejail en Kali Linux  
+✓ Ejecutado aplicaciones Python de forma aislada  
+✓ Comprobado el aislamiento de red y archivos  
+✓ Monitorizado procesos sandboxeados  
+✓ Documentado todo el proceso con capturas de pantalla  
 
-Este enfoque es válido tanto para:
-- Análisis de aplicaciones desconocidas
-- Pruebas de software en desarrollo
-- Entornos de producción donde la seguridad es crítica
-- Laboratorios de ciberseguridad para análisis de malware
-
-La implementación realizada cumple con las mejores prácticas de seguridad en contenedores y proporciona una base sólida para la ejecución segura de aplicaciones Python.
+Firejail es una herramienta esencial para desarrolladores y profesionales de ciberseguridad que necesitan ejecutar aplicaciones en entornos controlados y seguros.
 
 ---
 
-**Autor**: Izan  
-**Fecha**: Diciembre 2025  
+## Autor
+
+**Izan**  
+Ciclo Formativo de Grado Superior en Ciberseguridad  
+IES Valle del Jerte - Plasencia  
+
 **Asignatura**: Puesta en Producción Segura - Unidad 1  
-**Centro**: IES Valle del Jerte - Plasencia
+**Profesor**: José Manuel Medina  
+**Fecha**: Diciembre 2025
