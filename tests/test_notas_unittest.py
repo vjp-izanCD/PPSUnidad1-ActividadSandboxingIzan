@@ -1,7 +1,7 @@
 # test_notas_unittest.py
 import unittest
 import pytest
-from notas import agregar_nota, limpiar_datos
+from notas.notas import agregar_nota, limpiar_datos
 
 # ----------------------------------------------------------------------
 # CLASE DE PRUEBAS
@@ -84,7 +84,10 @@ class TestAgregarNota(unittest.TestCase):
     
     def test_cb1_nota_no_numerica(self):
         """[CAJA BLANCA: CB1] Camino 1: Nota no numérica (ej. booleano)."""
-        agregar_nota("CB1", True)
+        with self.assertRaises(ValueError) as cm:
+            agregar_nota("CB1", True)
+        self.assertIn("debe ser un número", str(cm.exception))
+
 
     def test_cb2_nota_fuera_de_rango(self):
         """[CAJA BLANCA: CB2] Camino 2: Nota numérica fuera de rango (ej. 15)."""
