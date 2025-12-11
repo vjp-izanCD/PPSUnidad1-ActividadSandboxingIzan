@@ -2,7 +2,7 @@
 
 ## Introducción
 
-Este documento describe el proceso completo de ejecución de sandboxing mediante **Firejail** para ejecutar de forma aislada y segura la aplicación `lavadero` desarrollada en Python.
+Este documento describe el proceso completo de ejecución de sandboxing mediante **Firejail** para ejecutar de forma aislada y segura la aplicación `notas` desarrollada en Python.
 
 ## ¿Qué es Sandboxing?
 
@@ -68,7 +68,7 @@ En esta captura se puede ver:
 
 ---
 
-## Paso 3: Ejecución de la Aplicación Lavadero
+## Paso 3: Ejecución de la Aplicación notas
 
 ### Comando 2: Ejecutar la aplicación sin red ni acceso a archivos privados
 
@@ -173,9 +173,9 @@ Esta captura muestra:
 
 ## Paso 7: Uso de Firejail con Diferentes Aplicaciones
 
-### Comando 6: Ejecutar la aplicación principal (lavadero)
+### Comando 6: Ejecutar la aplicación principal (notas)
 
-Además de las notas, tenemos la aplicación principal del lavadero:
+Además de las notas, tenemos la aplicación principal del notas:
 
 ```bash
 cd ~/PPSUnidad1-ActividadSandboxingIzan
